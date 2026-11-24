@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tambah Link</title>
+<style>
+:root{--bg:#fafaf9;--ink:#1c1c1a;--muted:#6b6b66;--line:#e4e4e0;--accent:#f2b705;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121212;--ink:#ececea;--muted:#9a9a94;--line:#2a2a28}}
+:root[data-theme="dark"]{--bg:#121212;--ink:#ececea;--muted:#9a9a94;--line:#2a2a28}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.6}
+.wrap{max-width:480px;margin:0 auto;padding:56px 22px}
+.links{display:flex;flex-direction:column;gap:10px;margin:0 0 28px}
+.links span{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px}
+.links a{color:var(--ink);font-weight:600;text-decoration:none;overflow-wrap:anywhere}
+.links button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:4px 8px}
+.empty{color:var(--muted);margin:0}
+form{display:flex;gap:8px;flex-wrap:wrap}
+input,select{font:inherit;color:var(--ink);background:transparent;border:0;border-bottom:1px solid var(--line);padding:8px 2px;border-radius:0}
+input{flex:1;min-width:160px}
+form button{font:inherit;font-weight:600;background:var(--accent);color:#1c1c1a;border:0;border-radius:999px;padding:8px 20px;cursor:pointer}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.err{color:#c0392b;font-size:.9rem;width:100%;margin:0;min-height:1.2em}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="links" id="links"></div>
+  <form id="f">
+    <select id="name" aria-label="Platform"><option>Instagram</option><option>TikTok</option><option>YouTube</option><option>X</option><option>Facebook</option><option>LinkedIn</option><option>WhatsApp</option><option>Lainnya</option></select>
+    <input id="url" type="text" inputmode="url" placeholder="instagram.com/namaanda" aria-label="Link sosmed" autocomplete="off">
+    <button type="submit">Tambah</button>
+    <p class="err" id="err" role="alert"></p>
+  </form>
+</main>
+<script>
+(function(){
+  var KEY="blog-links", box=document.getElementById("links"), err=document.getElementById("err"), items=[];
+  try{ var raw=localStorage.getItem(KEY); if(raw) items=JSON.parse(raw)||[]; }catch(e){ items=[]; }
+  if(!Array.isArray(items)) items=[];
+  function save(){ try{ localStorage.setItem(KEY,JSON.stringify(items)); }catch(e){} }
+  function render(){
+    box.textContent="";
+    if(!items.length){ var p=document.createElement("p"); p.className="empty"; p.textContent="Belum ada link."; box.appendChild(p); return; }
+    items.forEach(function(it,i){
+      var s=document.createElement("span");
+      var a=document.createElement("a"); a.href=it.u; a.target="_blank"; a.rel="noopener noreferrer"; a.textContent=it.n;
+      var b=document.createElement("button"); b.type="button"; b.textContent="×"; b.setAttribute("aria-label","Hapus "+it.n);
+      b.onclick=function(){ items.splice(i,1); save(); render(); };
+      s.appendChild(a); s.appendChild(b); box.appendChild(s);
+    });
+  }
+  document.getElementById("f").addEventListener("submit",function(e){
+    e.preventDefault(); err.textContent="";
+    var v=document.getElementById("url").value.trim();
+    if(!v){ err.textContent="Isi link terlebih dahulu."; return; }
+    if(!/^https?:\/\//i.test(v)) v="https://"+v;
+    var u; try{ u=new URL(v); }catch(x){ err.textContent="Link tidak valid."; return; }
+    if(u.hostname.indexOf(".")<1){ err.textContent="Link tidak valid."; return; }
+    items.push({n:document.getElementById("name").value,u:u.href}); save(); render();
+    document.getElementById("url").value="";
+  });
+  render();
+})();
+</script>
+</body>
+</html>
